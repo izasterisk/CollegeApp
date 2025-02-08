@@ -1,9 +1,23 @@
 using CollegeApp.MyLogging;
+using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
+//builder.Logging.ClearProviders();
+//builder.Logging.AddConsole();
+//builder.Logging.AddDebug();
+
+#region Serilog settings
+//Log.Logger = new LoggerConfiguration().MinimumLevel.Information()
+//    .WriteTo.File("Log/log.txt", rollingInterval : RollingInterval.Minute)
+//    .CreateLogger();
+
+//Write log to txt file
+//builder.Host.UseSerilog();
+//builder.Logging.AddSerilog();
+#endregion
+
 builder.Logging.ClearProviders();
-builder.Logging.AddConsole();
-builder.Logging.AddDebug();
+builder.Logging.AddLog4Net();
 
 // Add services to the container.
 
