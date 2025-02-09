@@ -1,4 +1,6 @@
+﻿using CollegeApp.Data;
 using CollegeApp.MyLogging;
+using Microsoft.EntityFrameworkCore;
 using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -18,6 +20,13 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Logging.ClearProviders();
 builder.Logging.AddLog4Net();
+
+// Cấu hình context database
+var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+builder.Services.AddDbContext<CollegeDBContext>(options =>
+    options.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString)
+    //,b => b.MigrationsAssembly("DAL")
+    ));
 
 // Add services to the container.
 
