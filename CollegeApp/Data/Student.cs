@@ -5,8 +5,10 @@ namespace CollegeApp.Data
 {
     public class Student
     {
-        [Key]
-        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
+        //[Key]
+        //[DatabaseGenerated(DatabaseGeneratedOption.Identity)]
+        //Sau khi thêm StudentConfig
+        //Không cần phải sử dụng [Key] và [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public int Id { get; set; }
         public string studentName { get; set; }
         public string Email { get; set; }

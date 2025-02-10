@@ -1,6 +1,8 @@
-﻿using CollegeApp.Models;
+﻿using CollegeApp.Data;
+using CollegeApp.Models;
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace CollegeApp.Controllers
 {
@@ -9,9 +11,11 @@ namespace CollegeApp.Controllers
     public class StudentController : ControllerBase
     {
         private readonly ILogger<StudentController> _logger;
-        public StudentController(ILogger<StudentController> logger)
+        private readonly CollegeDBContext _dbContext;
+        public StudentController(ILogger<StudentController> logger, CollegeDBContext dbContext)
         {
             _logger = logger;
+            _dbContext = dbContext;
         }
         [HttpGet]
         [Route("All", Name = "GetAllStudents")]
@@ -30,13 +34,17 @@ namespace CollegeApp.Controllers
             //    students.Add(obj);
             //}
 
-            var students = CollegeRepository.Students.Select(s => new StudentDTO()
+            var students = _dbContext.Students.Select(s => new StudentDTO()
             {
                 Id = s.Id,
                 studentName = s.studentName,
                 Address = s.Address,
                 Email = s.Email,
+                DOB = s.DOB.ToShortDateString(),
             });
+
+            //Lấy toàn bộ thì viết như dưới.
+            //var students = _dbContext.Students.ToList();
             return Ok(students);
         }
 
@@ -53,7 +61,7 @@ namespace CollegeApp.Controllers
                 return BadRequest();
             }
 
-            var students = CollegeRepository.Students.Where(c => c.Id == id).FirstOrDefault();
+            var students = _dbContext.Students.Where(c => c.Id == id).FirstOrDefault();
             if (students == null)
             {
                 _logger.LogError($"The student with ID = {id} not found!!!");
@@ -65,6 +73,7 @@ namespace CollegeApp.Controllers
                 studentName = students.studentName,
                 Address = students.Address,
                 Email = students.Email,
+                DOB = students.DOB.ToShortDateString(),
             };
             return Ok(studentDTO);
         }
@@ -75,7 +84,7 @@ namespace CollegeApp.Controllers
             if (string.IsNullOrEmpty(name))
                 return BadRequest();
 
-            var students = CollegeRepository.Students.Where(n => n.studentName == name).FirstOrDefault();
+            var students = _dbContext.Students.Where(n => n.studentName == name).FirstOrDefault();
             if (students == null)
                 return NotFound($"The student name {name} not found!!!");
             var studentDTO = new StudentDTO
@@ -84,6 +93,7 @@ namespace CollegeApp.Controllers
                 studentName = students.studentName,
                 Address = students.Address,
                 Email = students.Email,
+                DOB = students.DOB.ToShortDateString(),
             };
             return Ok(studentDTO);
         }
@@ -108,16 +118,16 @@ namespace CollegeApp.Controllers
             //    return BadRequest(ModelState);
             //}
 
-            int newId = CollegeRepository.Students.LastOrDefault().Id + 1;
 
             Student student = new Student
             {
-                Id=newId,
                 studentName=model.studentName,
                 Address = model.Address,
                 Email = model.Email,
+                DOB = Convert.ToDateTime(model.DOB),
             };
-            CollegeRepository.Students.Add(student);
+            _dbContext.Students.Add(student);
+            _dbContext.SaveChanges();
             model.Id = student.Id;
             return CreatedAtRoute("GetStudentByID", new { id = model.Id }, model);
         }
@@ -133,7 +143,7 @@ namespace CollegeApp.Controllers
             {
                 return BadRequest();
             }
-            var student = CollegeRepository.Students.Where(i => i.Id == model.Id).FirstOrDefault();
+            var student = _dbContext.Students.Where(i => i.Id == model.Id).FirstOrDefault();
             if (student == null)
             {
                 return NotFound($"The student with ID = {model.Id} not found!!!");
@@ -141,6 +151,8 @@ namespace CollegeApp.Controllers
             student.studentName = model.studentName;
             student.Email = model.Email;
             student.Address = model.Address;
+            student.DOB = Convert.ToDateTime(model.DOB);
+            _dbContext.SaveChanges();
             return NoContent();
         }
 
@@ -152,11 +164,12 @@ namespace CollegeApp.Controllers
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public ActionResult UpdateStudentPartial(int id, [FromBody] JsonPatchDocument<StudentDTO> patchDocument)
         {
+            //Example: "path": "/studentName", "op": "replace", "value": "New Student Name"
             if (patchDocument == null || id <= 0)
             {
                 return BadRequest();
             }
-            var student = CollegeRepository.Students.Where(i => i.Id == id).FirstOrDefault();
+            var student = _dbContext.Students.Where(i => i.Id == id).FirstOrDefault();
             if (student == null)
             {
                 return NotFound($"The student with ID = {id} not found!!!");
@@ -177,6 +190,7 @@ namespace CollegeApp.Controllers
             student.studentName = model.studentName;
             student.Email = model.Email;
             student.Address = model.Address;
+            _dbContext.SaveChanges();
             return NoContent();
         }
 
@@ -187,12 +201,13 @@ namespace CollegeApp.Controllers
             {
                 return BadRequest();
             }
-            var Student = CollegeRepository.Students.Where(i => i.Id == id).FirstOrDefault();
+            var Student = _dbContext.Students.Where(i => i.Id == id).FirstOrDefault();
             if (Student == null)
             {
                 return NotFound($"The student with ID = {id} not found!!!");
             }
-            CollegeRepository.Students.Remove(Student);
+            _dbContext.Students.Remove(Student);
+            _dbContext.SaveChanges();
             return Ok(true) ;
         }
     }

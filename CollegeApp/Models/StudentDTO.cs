@@ -14,6 +14,7 @@ namespace CollegeApp.Models
         public string Email { get; set; }
         [Required]
         public string Address { get; set; }
+        public String DOB { get; set; }
         //[Range(18, 60, ErrorMessage = "Tuoi phai tu 18 den 60")]
         //public int Age { get; set; }
         //public string Password { get; set; }
