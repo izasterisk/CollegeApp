@@ -9,6 +9,7 @@ namespace CollegeApp.Data.Config
         {
             builder.ToTable("Students");
             builder.HasKey(x => x.Id);
+
             builder.Property(x => x.Id).UseMySqlIdentityColumn();
 
             builder.Property(e => e.studentName)
@@ -40,6 +41,9 @@ namespace CollegeApp.Data.Config
                     DOB = new DateTime(2001, 1, 1)
                 }
             });
+
+            builder.HasOne(x => x.Department).WithMany(x => x.Students).HasForeignKey(x => x.DepartmentId)
+                .HasConstraintName("FK_Students_Department");
         }
     }
 }

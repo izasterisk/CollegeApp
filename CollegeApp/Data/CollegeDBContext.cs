@@ -9,6 +9,7 @@ namespace CollegeApp.Data
         {
         }
         public DbSet<Student> Students { get; set; }
+        public DbSet<Department> Departments { get; set; }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             //modelBuilder.Entity<Student>().HasData(new List<Student>()
@@ -44,6 +45,7 @@ namespace CollegeApp.Data
             //});
 
             modelBuilder.ApplyConfiguration(new StudentConfig());
+            modelBuilder.ApplyConfiguration(new DepartmentConfig());
         }
     }
 }

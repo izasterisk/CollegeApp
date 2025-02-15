@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace CollegeApp.Migrations
 {
     [DbContext(typeof(CollegeDBContext))]
-    [Migration("20250213161047_Initial")]
+    [Migration("20250215161705_Initial")]
     partial class Initial
     {
         /// <inheritdoc />
@@ -24,6 +24,42 @@ namespace CollegeApp.Migrations
                 .HasAnnotation("Relational:MaxIdentifierLength", 64);
 
             MySqlModelBuilderExtensions.AutoIncrementColumns(modelBuilder);
+
+            modelBuilder.Entity("CollegeApp.Data.Department", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("DepartmentName")
+                        .IsRequired()
+                        .HasMaxLength(250)
+                        .HasColumnType("varchar(250)");
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(250)
+                        .HasColumnType("varchar(250)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Departments", (string)null);
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            DepartmentName = "ECE",
+                            Description = "ECE"
+                        },
+                        new
+                        {
+                            Id = 2,
+                            DepartmentName = "CSE",
+                            Description = "CSE"
+                        });
+                });
 
             modelBuilder.Entity("CollegeApp.Data.Student", b =>
                 {
@@ -40,6 +76,9 @@ namespace CollegeApp.Migrations
                     b.Property<DateTime>("DOB")
                         .HasColumnType("datetime(6)");
 
+                    b.Property<int?>("DepartmentId")
+                        .HasColumnType("int");
+
                     b.Property<string>("Email")
                         .IsRequired()
                         .HasMaxLength(250)
@@ -51,6 +90,8 @@ namespace CollegeApp.Migrations
                         .HasColumnType("varchar(250)");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("DepartmentId");
 
                     b.ToTable("Students", (string)null);
 
@@ -71,6 +112,21 @@ namespace CollegeApp.Migrations
                             Email = "xvideos@gmail.com",
                             studentName = "OldMCK"
                         });
+                });
+
+            modelBuilder.Entity("CollegeApp.Data.Student", b =>
+                {
+                    b.HasOne("CollegeApp.Data.Department", "Department")
+                        .WithMany("Students")
+                        .HasForeignKey("DepartmentId")
+                        .HasConstraintName("FK_Students_Department");
+
+                    b.Navigation("Department");
+                });
+
+            modelBuilder.Entity("CollegeApp.Data.Department", b =>
+                {
+                    b.Navigation("Students");
                 });
 #pragma warning restore 612, 618
         }
