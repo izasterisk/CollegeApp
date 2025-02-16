@@ -15,7 +15,7 @@ namespace CollegeApp.Controllers
     [ApiController]
     //[EnableCors(PolicyName = "AllowOnlyGoogle")]
     //[DisableCors]
-    //[Authorize(Roles = "Superadmin, Admin")]
+    [Authorize(AuthenticationSchemes = "LoginforLocaluser", Roles = "Superadmin, Admin")]
     public class StudentController : ControllerBase
     {
         private readonly ILogger<StudentController> _logger;        

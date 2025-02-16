@@ -2,8 +2,11 @@
 using CollegeApp.Data;
 using CollegeApp.Data.Repository;
 using CollegeApp.MyLogging;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 using Serilog;
+using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 //builder.Logging.ClearProviders();
@@ -43,6 +46,9 @@ builder.Services.AddSwaggerGen();
 builder.Services.AddAutoMapper(typeof(AutoMapperConfig));
 
 builder.Services.AddTransient<IMyLogger, LogToServerMemory>();
+
+//2. Loosely coupled
+//builder.Services.AddScoped<IMyLogger, LogToFile>();
 builder.Services.AddScoped<IStudentRepository, StudentRepository>();
 builder.Services.AddScoped(typeof(ICollegeRepository<>), typeof(CollegeRepository<>));
 
@@ -55,6 +61,7 @@ builder.Services.AddScoped(typeof(ICollegeRepository<>), typeof(CollegeRepositor
 //    //policy.WithOrigins("http://localhost:4200");
 //}));
 
+//CORS Configuration
 builder.Services.AddCors(options => 
 {
     options.AddDefaultPolicy(policy =>
@@ -71,8 +78,35 @@ builder.Services.AddCors(options =>
     });
 });
 
-//2. Loosely coupled
-//builder.Services.AddScoped<IMyLogger, LogToFile>();
+//JWT Authentication Configuration
+builder.Services.AddAuthentication(options =>
+{
+    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+}).AddJwtBearer("LoginforGoogleuser", options =>
+{
+    //options.RequireHttpsMetadata = false;
+    options.SaveToken = true;
+    options.TokenValidationParameters = new TokenValidationParameters()
+    {
+        ValidateIssuerSigningKey = true,
+        IssuerSigningKey = new SymmetricSecurityKey(Encoding.ASCII
+            .GetBytes(builder.Configuration.GetValue<string>("JWTSecretforGoogle"))),
+        ValidateIssuer = false,
+        ValidateAudience = false,
+    };
+}).AddJwtBearer("LoginforLocaluser", options =>
+{
+    options.SaveToken = true;
+    options.TokenValidationParameters = new TokenValidationParameters()
+    {
+        ValidateIssuerSigningKey = true,
+        IssuerSigningKey = new SymmetricSecurityKey(Encoding.ASCII
+            .GetBytes(builder.Configuration.GetValue<string>("JWTSecretforLocaluser"))),
+        ValidateIssuer = false,
+        ValidateAudience = false,
+    };
+});
 
 var app = builder.Build();
 
