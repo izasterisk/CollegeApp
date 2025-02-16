@@ -46,6 +46,31 @@ builder.Services.AddTransient<IMyLogger, LogToServerMemory>();
 builder.Services.AddScoped<IStudentRepository, StudentRepository>();
 builder.Services.AddScoped(typeof(ICollegeRepository<>), typeof(CollegeRepository<>));
 
+//builder.Services.AddCors(options => options.AddPolicy("MyTestCORS", policy =>
+//{
+//    //Allow all origins
+//    policy.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod();
+
+//    //Allow specific origins
+//    //policy.WithOrigins("http://localhost:4200");
+//}));
+
+builder.Services.AddCors(options => 
+{
+    options.AddDefaultPolicy(policy =>
+    {
+        policy.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod();
+    });
+    options.AddPolicy("AllowOnlyLocalHost", policy =>
+    {
+        policy.WithOrigins("http://localhost:4200").AllowAnyHeader().AllowAnyMethod();
+    });
+    options.AddPolicy("AllowOnlyGoogle", policy =>
+    {
+        policy.WithOrigins("http://google.com","http://gmail.com").AllowAnyHeader().AllowAnyMethod();
+    });
+});
+
 //2. Loosely coupled
 //builder.Services.AddScoped<IMyLogger, LogToFile>();
 
@@ -59,9 +84,24 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+app.UseRouting();
+app.UseCors();
 
 app.UseAuthorization();
 
-app.MapControllers();
+app.UseEndpoints(endpoints =>
+{
+    endpoints.MapGet("api/testingendpoint",
+        context => context.Response.WriteAsync("Test Response 1"))
+        .RequireCors("AllowOnlyLocalHost");
+
+    endpoints.MapControllers()
+             .RequireCors("AllowOnlyGoogle");
+
+    endpoints.MapGet("api/testingendpoint2",
+        context => context.Response.WriteAsync(builder.Configuration.GetValue<string>("JWTSecret")));
+});
+
+//app.MapControllers();
 
 app.Run();

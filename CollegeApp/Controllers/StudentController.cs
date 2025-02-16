@@ -3,6 +3,8 @@ using CollegeApp.Data;
 using CollegeApp.Data.Repository;
 using CollegeApp.Models;
 using Humanizer;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -11,6 +13,9 @@ namespace CollegeApp.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    //[EnableCors(PolicyName = "AllowOnlyGoogle")]
+    //[DisableCors]
+    //[Authorize(Roles = "Superadmin, Admin")]
     public class StudentController : ControllerBase
     {
         private readonly ILogger<StudentController> _logger;        
@@ -29,6 +34,8 @@ namespace CollegeApp.Controllers
         }
         [HttpGet]
         [Route("All", Name = "GetAllStudents")]
+        //[EnableCors(PolicyName = "AllowOnlyGoogle")]        
+        //[AllowAnonymous]
         public async Task<ActionResult<IEnumerable<StudentDTO>>> GetStudentsAsync()
         {
             _logger.LogInformation("GetStudents method called");
