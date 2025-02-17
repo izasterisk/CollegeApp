@@ -5,6 +5,7 @@ using CollegeApp.MyLogging;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using Microsoft.OpenApi.Models;
 using Serilog;
 using System.Text;
 
@@ -41,7 +42,35 @@ builder.Services.AddControllers()
 
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+
+//78. Swagger Configuration for Authorization
+builder.Services.AddSwaggerGen(options =>
+{
+    options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+    {
+        Description = "JWT Authorization header using the Bearer scheme. Enter Bearer [space] add your token in the text input. Example: Bearer ...",
+        Name = "Authorization",
+        In = ParameterLocation.Header,
+        Scheme = "Bearer",
+    });
+    options.AddSecurityRequirement(new OpenApiSecurityRequirement()
+    {
+        {
+            new OpenApiSecurityScheme
+            {
+                Reference = new OpenApiReference
+                {
+                    Type = ReferenceType.SecurityScheme,
+                    Id = "Bearer"
+                },
+                Scheme = "oauth2",
+                Name = "Bearer",
+                In = ParameterLocation.Header
+            },
+            new List<string>()
+        }
+    });
+});
 
 builder.Services.AddAutoMapper(typeof(AutoMapperConfig));
 
@@ -78,6 +107,13 @@ builder.Services.AddCors(options =>
     });
 });
 
+string GoogleAudience = builder.Configuration.GetValue<string>("GoogleAudience");
+string MicrosoftAudience = builder.Configuration.GetValue<string>("MicrosoftAudience");
+string LocalAudience = builder.Configuration.GetValue<string>("LocalAudience");
+string GoogleIssuer = builder.Configuration.GetValue<string>("GoogleIssuer");
+string MicrosoftIssuer = builder.Configuration.GetValue<string>("MicrosoftIssuer");
+string LocalIssuer = builder.Configuration.GetValue<string>("LocalIssuer");
+
 //JWT Authentication Configuration
 builder.Services.AddAuthentication(options =>
 {
@@ -92,8 +128,10 @@ builder.Services.AddAuthentication(options =>
         ValidateIssuerSigningKey = true,
         IssuerSigningKey = new SymmetricSecurityKey(Encoding.ASCII
             .GetBytes(builder.Configuration.GetValue<string>("JWTSecretforGoogle"))),
-        ValidateIssuer = false,
-        ValidateAudience = false,
+        ValidateIssuer = true,
+        ValidIssuer = GoogleIssuer,
+        ValidateAudience = true,
+        ValidAudience = GoogleAudience,
     };
 }).AddJwtBearer("LoginforLocaluser", options =>
 {
@@ -103,8 +141,10 @@ builder.Services.AddAuthentication(options =>
         ValidateIssuerSigningKey = true,
         IssuerSigningKey = new SymmetricSecurityKey(Encoding.ASCII
             .GetBytes(builder.Configuration.GetValue<string>("JWTSecretforLocaluser"))),
-        ValidateIssuer = false,
-        ValidateAudience = false,
+        ValidateIssuer = true,
+        ValidIssuer = LocalIssuer,
+        ValidateAudience = true,
+        ValidAudience = LocalAudience,
     };
 });
 

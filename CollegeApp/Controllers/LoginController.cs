@@ -35,13 +35,20 @@ namespace CollegeApp.Controllers
                 Username = model.Username
             };
 
+            string audience = string.Empty;
+            string issuer = string.Empty;
             byte[] key = null;
+
             if (model.Policy == "Local")
             {
+                issuer = _configuration.GetValue<string>("LocalIssuer");
+                audience = _configuration.GetValue<string>("LocalAudience");
                 key = Encoding.ASCII.GetBytes(_configuration.GetValue<string>("JWTSecretforLocaluser"));
             }
             else if (model.Policy == "Google")
             {
+                issuer = _configuration.GetValue<string>("GoogleIssuer");
+                audience = _configuration.GetValue<string>("GoogleAudience");
                 key = Encoding.ASCII.GetBytes(_configuration.GetValue<string>("JWTSecretforGoogle"));
             }
 
@@ -51,6 +58,8 @@ namespace CollegeApp.Controllers
                 var tokenHandler = new JwtSecurityTokenHandler();
                 var tokenDescriptor = new SecurityTokenDescriptor()
                 {
+                    Issuer = issuer,
+                    Audience = audience,
                     Subject = new ClaimsIdentity(new Claim[]
                     {
                         //Username
