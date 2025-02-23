@@ -47,8 +47,8 @@ namespace CollegeApp.Controllers
                 _apiResponse.Data = dto;
                 _apiResponse.Status = true;
                 _apiResponse.StatusCode = HttpStatusCode.OK;
-                return Ok(_apiResponse);
-                //return CreatedAtRoute("GetRoleById", new { id = dto.Id }, _apiResponse);
+                //return Ok(_apiResponse);
+                return CreatedAtRoute("GetRoleById", new { id = dto.Id }, _apiResponse);
             }
             catch (Exception ex)
             {

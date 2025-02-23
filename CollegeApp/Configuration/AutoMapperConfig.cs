@@ -10,6 +10,7 @@ namespace CollegeApp.Configuration
         {
             CreateMap<StudentDTO, Student>().ReverseMap();
             CreateMap<RoleDTO, Role>().ReverseMap();
+            CreateMap<RolePrivilegeDTO, RolePrivilege>().ReverseMap();
 
             //Khi có 2 trường khác tên, ví dụ: studentName và Name
             //CreateMap<StudentDTO, Student>().ForMember(n => n.studentName, opt => opt.MapFrom(x => x.Name)).ReverseMap();
