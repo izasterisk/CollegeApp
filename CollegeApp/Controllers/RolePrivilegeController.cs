@@ -88,6 +88,33 @@ namespace CollegeApp.Controllers
         }
 
         [HttpGet]
+        [Route("AllAllRolePrivilegesById", Name = "GetAllRolePrivilegesById")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
+        public async Task<ActionResult<APIResponse>> GetRolePrivilegesByIdAsync(int id)
+        {
+            try
+            {
+                var rolePrivileges = await _rolePrivilegeRepository.GetAllByFilterAsync(rolePrivilege => rolePrivilege.RoleId == id);
+                _apiResponse.Data = _mapper.Map<List<RolePrivilegeDTO>>(rolePrivileges);
+                _apiResponse.Status = true;
+                _apiResponse.StatusCode = HttpStatusCode.OK;
+
+                return Ok(_apiResponse);
+            }
+            catch (Exception ex)
+            {
+                _apiResponse.Status = false;
+                _apiResponse.StatusCode = HttpStatusCode.InternalServerError;
+                _apiResponse.Errors.Add(ex.Message);
+                return _apiResponse;
+            }
+        }
+
+        [HttpGet]
         [Route("{id:int}", Name = "GetRolePrivilegesById")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
@@ -102,7 +129,7 @@ namespace CollegeApp.Controllers
                 {
                     return BadRequest();
                 }
-                var rolePrivilege = await _rolePrivilegeRepository.GetAsync(role => role.Id == id);
+                var rolePrivilege = await _rolePrivilegeRepository.GetAsync(rolePrivilege => rolePrivilege.Id == id);
 
                 if (rolePrivilege == null)
                 {
@@ -187,6 +214,44 @@ namespace CollegeApp.Controllers
                 await _rolePrivilegeRepository.UpdateAsync(newRole);
 
                 _apiResponse.Data = newRole;
+                _apiResponse.Status = true;
+                _apiResponse.StatusCode = HttpStatusCode.OK;
+
+                return Ok(_apiResponse);
+            }
+            catch (Exception ex)
+            {
+                _apiResponse.Status = false;
+                _apiResponse.StatusCode = HttpStatusCode.InternalServerError;
+                _apiResponse.Errors.Add(ex.Message);
+                return _apiResponse;
+            }
+        }
+
+        [HttpDelete]
+        [Route("Delete/{id:int}")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public async Task<ActionResult<APIResponse>> DeleteRolePrivilegeAsync(int id)
+        {
+            try
+            {
+                if (id <= 0)
+                {
+                    return BadRequest("Invalid role ID.");
+                }
+
+                var existingRole = await _rolePrivilegeRepository.GetAsync(role => role.Id == id);
+                if (existingRole == null)
+                {
+                    return NotFound($"The role privilege with ID = {id} not found!!!");
+                }
+
+                await _rolePrivilegeRepository.DeleteAsync(existingRole);
+
+                _apiResponse.Data = true;
                 _apiResponse.Status = true;
                 _apiResponse.StatusCode = HttpStatusCode.OK;
 
