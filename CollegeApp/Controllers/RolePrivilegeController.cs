@@ -88,7 +88,7 @@ namespace CollegeApp.Controllers
         }
 
         [HttpGet]
-        [Route("AllAllRolePrivilegesById", Name = "GetAllRolePrivilegesById")]
+        [Route("AllRolePrivilegesById", Name = "GetAllRolePrivilegesById")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
