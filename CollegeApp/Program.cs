@@ -2,6 +2,7 @@
 using CollegeApp.Data;
 using CollegeApp.Data.Repository;
 using CollegeApp.MyLogging;
+using CollegeApp.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -75,6 +76,7 @@ builder.Services.AddTransient<IMyLogger, LogToServerMemory>();
 //2. Loosely coupled
 //builder.Services.AddScoped<IMyLogger, LogToFile>();
 builder.Services.AddScoped<IStudentRepository, StudentRepository>();
+builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped(typeof(ICollegeRepository<>), typeof(CollegeRepository<>));
 
 //builder.Services.AddCors(options => options.AddPolicy("MyTestCORS", policy =>
