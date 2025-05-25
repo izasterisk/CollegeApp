@@ -9,5 +9,7 @@ namespace CollegeApp.Services
         Task<List<UserReadonlyDTO>> GetUserAsync();
         Task<UserReadonlyDTO> GetUserByIdAsync(int id);
         Task<UserReadonlyDTO> GetUserByUsernameAsync(string username);
+        Task<bool> UpdateUserAsync(UserDTO dto);
+        Task<bool> SoftDeleteUserAsync(int id);
     }
 }

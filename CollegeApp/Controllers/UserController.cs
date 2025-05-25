@@ -87,7 +87,7 @@ namespace CollegeApp.Controllers
         {
             try
             {
-                if(id <= 0)
+                if (id <= 0)
                 {
                     _apiResponse.StatusCode = HttpStatusCode.BadRequest;
                     _apiResponse.Status = false;
@@ -146,6 +146,73 @@ namespace CollegeApp.Controllers
                 _apiResponse.Status = true;
                 _apiResponse.StatusCode = HttpStatusCode.OK;
                 //Ok - 200
+                return Ok(_apiResponse);
+            }
+            catch (Exception ex)
+            {
+                _apiResponse.Errors.Add(ex.Message);
+                _apiResponse.StatusCode = HttpStatusCode.InternalServerError;
+                _apiResponse.Status = false;
+                return _apiResponse;
+            }
+        }
+        [HttpPut]
+        [Route("Update")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
+        public async Task<ActionResult<APIResponse>> UpdateUserAsync(UserDTO dto)
+        {
+            try
+            {
+                if (dto == null || dto.Id <= 0)
+                {
+                    return BadRequest(new APIResponse
+                    {
+                        Status = false,
+                        StatusCode = HttpStatusCode.BadRequest,
+                        Errors = { "Invalid user data provided." }
+                    });
+                }
+                var result = await _userService.UpdateUserAsync(dto);
+                _apiResponse.Data = result;
+                _apiResponse.Status = true;
+                _apiResponse.StatusCode = HttpStatusCode.OK;
+                //Ok - 200
+                return Ok(_apiResponse); 
+            }
+            catch (Exception ex)
+            {
+                _apiResponse.Errors.Add(ex.Message);
+                _apiResponse.StatusCode = HttpStatusCode.InternalServerError;
+                _apiResponse.Status = false;
+                return _apiResponse;
+            }
+        }
+        [HttpDelete("delete/{id}", Name = "DeleteUserByID")]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
+        public async Task<ActionResult<APIResponse>> SoftDeleteUserAsync(int id)
+        {
+            try
+            {                
+                var result = await _userService.SoftDeleteUserAsync(id);
+                if (!result)
+                {
+                    _apiResponse.StatusCode = HttpStatusCode.NotFound;
+                    _apiResponse.Status = false;
+                    _apiResponse.Errors.Add($"User with ID {id} not found.");
+                    return NotFound(_apiResponse);
+                }
+                _apiResponse.StatusCode = HttpStatusCode.OK;
+                _apiResponse.Status = true;
+                _apiResponse.Data = result;
                 return Ok(_apiResponse);
             }
             catch (Exception ex)

@@ -43,7 +43,7 @@ namespace CollegeApp.Services
             //}
             //New way
             ArgumentNullException.ThrowIfNull(dto, $"{nameof(dto)} is null");
-            var existingUser = await _userRepository.GetAsync(u => u.Username.Equals(dto.Username));
+            var existingUser = await _userRepository.GetAsync(u => !u.IsDeleted && u.Username.Equals(dto.Username));
             if (existingUser != null)
             {
                 throw new Exception($"Username {dto.Username} already exists.");
@@ -67,13 +67,13 @@ namespace CollegeApp.Services
         }
         public async Task<List<UserReadonlyDTO>> GetUserAsync()
         {
-            var users = await _userRepository.GetAllAsync();
+            var users = await _userRepository.GetAllByFilterAsync(u => !u.IsDeleted);
             return _mapper.Map<List<UserReadonlyDTO>>(users);
         }
         public async Task<UserReadonlyDTO> GetUserByIdAsync(int id)
         {
             ArgumentNullException.ThrowIfNull(id, $"{nameof(id)} is null");
-            var user = await _userRepository.GetAsync(u => u.Id == id);
+            var user = await _userRepository.GetAsync(u => !u.IsDeleted && u.Id == id);
             if (user == null)
             {
                 throw new KeyNotFoundException($"User with ID {id} not found.");
@@ -83,12 +83,51 @@ namespace CollegeApp.Services
         public async Task<UserReadonlyDTO> GetUserByUsernameAsync(string username)
         {
             ArgumentNullException.ThrowIfNull(username, $"{nameof(username)} is null");
-            var user = await _userRepository.GetAsync(u => u.Username.Equals(username));
+            var user = await _userRepository.GetAsync(u => !u.IsDeleted && u.Username.Equals(username));
             if (user == null)
             {
                 throw new KeyNotFoundException($"User with username {username} not found.");
             }
             return _mapper.Map<UserReadonlyDTO>(user);
+        }
+        public async Task<bool> UpdateUserAsync(UserDTO dto)
+        {
+            ArgumentNullException.ThrowIfNull(dto, $"{nameof(dto)} is null");
+            var existingUser = await _userRepository.GetAsync(u => !u.IsDeleted && u.Id == dto.Id, true);
+            if(existingUser == null)
+            {
+                throw new KeyNotFoundException($"User with ID {dto.Id} not found.");
+            }
+            var updateUser = _mapper.Map<User>(dto);
+            updateUser.ModifiedDate = DateTime.Now;
+            //Only update user's information, not password
+            //If update password, then create new hash and salt
+            if (!string.IsNullOrEmpty(dto.Password))
+            {
+                var passwordHash = CreatePasswordHashWithSalt(dto.Password);
+                updateUser.Password = passwordHash.passwordHash;
+                updateUser.PasswordSalt = passwordHash.salt;
+            }
+
+            await _userRepository.UpdateAsync(updateUser);
+            return true;
+        }
+        public async Task<bool> SoftDeleteUserAsync(int id)
+        {
+            ArgumentNullException.ThrowIfNull(id, $"{nameof(id)} is null");
+            if(id <= 0)
+            {
+                throw new ArgumentOutOfRangeException(nameof(id), "User ID must be greater than zero.");
+            }
+            var user = await _userRepository.GetAsync(u => !u.IsDeleted && u.Id == id, true);
+            if (user == null)
+            {
+                throw new KeyNotFoundException($"User with ID {id} not found.");
+            }
+            //Soft delete
+            user.IsDeleted = true;
+            await _userRepository.UpdateAsync(user);
+            return true;
         }
     }
 }
